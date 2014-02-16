@@ -7,8 +7,11 @@ import string
 from lxml.cssselect import CSSSelector
 from lxml import etree
 
+
 class Parser(object):
+
     """ Simple wrapper around lxml object """
+
     def __init__(self, element, encoding="utf8"):
         self.element = element
         self.encoding = encoding
