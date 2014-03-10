@@ -6,9 +6,13 @@ import unicodedata
 import string
 from lxml.cssselect import CSSSelector
 from lxml import etree
+import collections
+
 
 class Parser(object):
+
     """ Simple wrapper around lxml object """
+
     def __init__(self, element, encoding="utf8"):
         self.element = element
         self.encoding = encoding
@@ -29,10 +33,10 @@ class Parser(object):
                 pass
         return default
 
-    def html(self, unicode=False):
+    def html(self, str=False):
         """ Return html of element """
         html = lxml.html.tostring(self.element, encoding=self.encoding)
-        if unicode:
+        if str:
             html = html.decode(self.encoding)
         return html
 
@@ -40,7 +44,7 @@ class Parser(object):
         parts = [getattr(self, 'text', '') or '']
         for child in self.iterchildren():
             if not child.tag is etree.Comment:
-                parts.append(child.html(unicode=True))
+                parts.append(child.html(str=True))
         return ''.join(parts)
 
     def __unicode__(self):
@@ -57,7 +61,7 @@ class Parser(object):
                     result.append(element_result)
             else:
                 result.append(element)
-        return u"".join(result)
+        return "".join(result)
 
     def _wrap_result(self, func):
         """ Wrap result in Parser instance """
@@ -84,7 +88,7 @@ class Parser(object):
         # If attrib with that name doesn't exists return lxml attrib
         result = getattr(self.element, name, None)
         # If result is callable -- decorate it.
-        if callable(result):
+        if isinstance(result, collections.Callable):
             return self._wrap_result(result)
         else:
             return result
@@ -97,7 +101,7 @@ class Parser(object):
         if name in self.element.attrib:
             self.element.attrib[name] = value
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.element is not None
 
 
@@ -113,13 +117,13 @@ def str2int(string_with_int):
 
 def to_unicode(obj, encoding='utf-8'):
     """ Convert string to unicode string """
-    if isinstance(obj, basestring):
-        if not isinstance(obj, unicode):
-            obj = unicode(obj, encoding)
+    if isinstance(obj, str):
+        if not isinstance(obj, str):
+            obj = str(obj, encoding)
     return obj
 
 
-def strip_accents(s, pass_symbols=(u'й', u'Й', u'\n')):
+def strip_accents(s, pass_symbols=('й', 'Й', '\n')):
     """ Strip accents from a string """
     result = []
     for char in s:
@@ -134,7 +138,7 @@ def strip_accents(s, pass_symbols=(u'й', u'Й', u'\n')):
     return ''.join(result)
 
 
-def strip_symbols(s, pass_symbols=(u'й', u'Й', u'\n')):
+def strip_symbols(s, pass_symbols=('й', 'Й', '\n')):
     """ Strip ugly unicode symbols from a string """
     result = []
     for char in s:
@@ -144,18 +148,18 @@ def strip_symbols(s, pass_symbols=(u'й', u'Й', u'\n')):
             continue
         for c in unicodedata.normalize('NFKC', char):
             if unicodedata.category(c) == 'Zs':
-                result.append(u' ')
+                result.append(' ')
                 continue
             if unicodedata.category(c) not in ['So', 'Mn', 'Lo', 'Cn', 'Co', 'Cf', 'Cc']:
                 result.append(c)
-    return u"".join(result)
+    return "".join(result)
 
 
 def strip_spaces(s):
     """ Strip excess spaces from a string """
-    return u" ".join([c for c in s.split(u' ') if c])
+    return " ".join([c for c in s.split(' ') if c])
 
 
 def strip_linebreaks(s):
     """ Strip excess line breaks from a string """
-    return u"\n".join([c for c in s.split(u'\n') if c])
+    return "\n".join([c for c in s.split('\n') if c])
